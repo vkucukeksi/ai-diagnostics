@@ -1,0 +1,30 @@
+You are a senior cloud engineer and SRE.
+
+Analyse the following system and infrastructure data.
+
+Your task:
+1. Identify the most likely root cause of the issue
+2. Explain the reasoning clearly
+3. Provide a step-by-step remediation plan
+4. Highlight any assumptions made
+
+Output format:
+
+Root Cause:
+<clear explanation>
+
+Evidence:
+- <key finding>
+- <key finding>
+
+Remediation Steps:
+1. ...
+2. ...
+
+Additional Notes:
+<any risks or observations>
+
+---
+
+DATA:
+{{DATA}}
