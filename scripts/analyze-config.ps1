@@ -18,7 +18,7 @@ $data = Get-Content $InputPath | ConvertFrom-Json
 
 $findings = @()
 
-# 🔍 Check 1: Missing DNS
+#   Check 1: Missing DNS
 if (!$data.DNS -or $data.DNS.Count -eq 0) {
     $findings += @{
         Severity = "High"
@@ -27,7 +27,7 @@ if (!$data.DNS -or $data.DNS.Count -eq 0) {
     }
 }
 
-# 🔍 Check 2: Suspicious IP
+#   Check 2: Suspicious IP
 if ($data.IPs -contains "0.0.0.0") {
     $findings += @{
         Severity = "Medium"
@@ -36,7 +36,7 @@ if ($data.IPs -contains "0.0.0.0") {
     }
 }
 
-# 🔍 Check 3: Low services running
+#   Check 3: Low services running
 if ($data.Services.Count -lt 5) {
     $findings += @{
         Severity = "Low"
@@ -45,7 +45,7 @@ if ($data.Services.Count -lt 5) {
     }
 }
 
-# 📦 Output object
+#   Output object
 $result = @{
     Timestamp = Get-Date
     Hostname  = $data.Hostname
@@ -58,7 +58,7 @@ New-Item -ItemType Directory -Force -Path ".\output" | Out-Null
 # Save JSON
 $result | ConvertTo-Json -Depth 5 | Out-File ".\output\analysis.json"
 
-# 👀 Console output (this is the demo magic)
+#   Console output (this is the demo magic)
 Write-Host "`n=== Analysis Results ===" -ForegroundColor Cyan
 
 if ($findings.Count -eq 0) {
