@@ -35,6 +35,17 @@ This is a lightweight, practical project focused on using AI to support:
 
 ---
 
-## ⚠️ Disclaimer
+## 🔑 API Requirements
 
-This project is for educational and defensive purposes only.
+This project includes optional AI-powered analysis using the OpenAI API.
+
+To enable this feature, you will need:
+
+An OpenAI API key
+Active billing / available credits
+
+Set your API key in PowerShell before running:
+
+$env:OPENAI_API_KEY="your-api-key"
+
+If no API credits are available, the AI analysis step will fail. The core data collection and analysis scripts will still function as expected.
