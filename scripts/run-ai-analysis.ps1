@@ -1,6 +1,6 @@
 param (
     [string]$AnalysisPath = ".\output\analysis.json",
-    [string]$PromptPath   = ".\prompts\root-cause.txt",
+    [string]$PromptPath   = "..\prompts\root-cause.txt",
     [string]$OutputPath   = ".\output\report.md"
 )
 
@@ -53,6 +53,11 @@ $response = Invoke-RestMethod `
         "Content-Type"  = "application/json"
     } `
     -Body $body
+
+    if (-not $response -or -not $response.choices) {
+    Write-Error "AI analysis failed (likely due to missing API credits)."
+    exit
+}
 
 $output = $response.choices[0].message.content
 
