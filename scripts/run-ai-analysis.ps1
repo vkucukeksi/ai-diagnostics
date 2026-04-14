@@ -1,29 +1,36 @@
 param (
-    [string]$AnalysisPath = ".\output\analysis.json",
-    [string]$PromptPath   = "..\prompts\root-cause.txt",
-    [string]$OutputPath   = ".\output\report.md"
+    [string]$PromptPath = ".\prompts\root-cause.txt",
+    [string]$DataPath = ".\output\analysis.json"
 )
 
 function Write-Log {
     param ([string]$Message)
-    Write-Host "[AI] $Message" -ForegroundColor Magenta
+    Write-Host "[AI Analysis] $Message" -ForegroundColor Magenta
 }
-
-Write-Log "Loading analysis data..."
-
-if (!(Test-Path $AnalysisPath)) {
-    Write-Error "Analysis file not found: $AnalysisPath"
-    exit
-}
-
-$data = Get-Content $AnalysisPath -Raw
 
 Write-Log "Loading prompt template..."
 
+if (!(Test-Path $PromptPath)) {
+    Write-Error "Prompt file not found: $PromptPath"
+    exit
+}
+
 $promptTemplate = Get-Content $PromptPath -Raw
 
-# Inject data into prompt
-$finalPrompt = $promptTemplate -replace "{{DATA}}", $data
+if (!(Test-Path $DataPath)) {
+    Write-Error "Data file not found: $DataPath"
+    exit
+}
+
+$data = Get-Content $DataPath -Raw
+
+# Inject data into prompt (safe replace)
+$finalPrompt = $promptTemplate.Replace("{{DATA}}", $data)
+
+if (-not $finalPrompt) {
+    Write-Error "Final prompt is empty. Check prompt file or data injection."
+    exit
+}
 
 Write-Log "Calling OpenAI API..."
 
@@ -34,36 +41,46 @@ if (-not $apiKey) {
     exit
 }
 
-$body = @{
-    model = "gpt-4.1-mini"
-    messages = @(
-        @{
-            role = "user"
-            content = $finalPrompt
-        }
-    )
-    temperature = 0.3
-} | ConvertTo-Json -Depth 5
+# Escape JSON string properly
+function Escape-JsonString {
+    param([string]$String)
+    $String = $String -replace '\\', '\\'
+    $String = $String -replace '"', '\"'
+    $String = $String -replace "`n", '\n'
+    $String = $String -replace "`r", '\r'
+    $String = $String -replace "`t", '\t'
+    return $String
+}
 
+# Build request body - use explicit JSON construction
+$escapedContent = Escape-JsonString $finalPrompt
+$body = "{
+  ""model"": ""gpt-4o-mini"",
+  ""messages"": [
+    {
+      ""role"": ""user"",
+      ""content"": ""$escapedContent""
+    }
+  ],
+  ""temperature"": 0.3
+}"
+
+# Call API
 $response = Invoke-RestMethod `
     -Uri "https://api.openai.com/v1/chat/completions" `
     -Method Post `
     -Headers @{
-        "Authorization" = "Bearer $apiKey"
-        "Content-Type"  = "application/json"
+        Authorization = "Bearer $apiKey"
+        "Content-Type" = "application/json"
     } `
-    -Body $body
+    -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
 
-    if (-not $response -or -not $response.choices) {
+# Validate response
+if (-not $response -or -not $response.choices) {
     Write-Error "AI analysis failed (likely due to missing API credits)."
     exit
 }
 
 $output = $response.choices[0].message.content
 
-# Ensure output folder exists
-New-Item -ItemType Directory -Force -Path (Split-Path $OutputPath) | Out-Null
-
-$output | Out-File $OutputPath
-
-Write-Log "AI analysis complete. Output saved to $OutputPath"
+Write-Output $output
