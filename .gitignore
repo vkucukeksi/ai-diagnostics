@@ -1,3 +1,25 @@
-output/
+# Generated logs and sensitive data
 *.log
-*.json
+output/*.log
+
+# Local environment variables
+.env
+.env.local
+*.local
+
+# API keys and credentials
+config.local.json
+credentials.json
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (if applicable)
+node_modules/
+
+# Temp files
+*.tmp
+*.temp

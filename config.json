@@ -1,0 +1,24 @@
+{
+  "analysis": {
+    "outputDir": "./output",
+    "promptDir": "./prompts"
+  },
+  "ai": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.3,
+    "maxTokens": 2000,
+    "enabled": true,
+    "apiTimeout": 30
+  },
+  "collection": {
+    "includeServices": true,
+    "includeRoutes": true,
+    "includeDNS": true,
+    "includeIPs": true
+  },
+  "rules": {
+    "minServiceCount": 5,
+    "invalidIPs": ["0.0.0.0", "127.0.0.1"],
+    "requireDNS": true
+  }
+}
