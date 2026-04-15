@@ -133,24 +133,7 @@ powershell -ExecutionPolicy Bypass -File ".\scripts\run-full-analysis.ps1"
 
 # Or set permanently (not recommended)
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
----
-
-#### "Cannot find path"
-**Cause:** Running script from wrong directory.
-
-**Solution:**
-```powershell
-# Navigate to project root first
-cd C:\Users\Volkan\Documents\ai-diagnostics
-
-# Then run
-.\scripts\run-full-analysis.ps1
-
-# Or use full path
-C:\Users\Volkan\Documents\ai-diagnostics\scripts\run-full-analysis.ps1
-```
+``
 
 ---
 
