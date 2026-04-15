@@ -14,7 +14,17 @@ if (!(Test-Path $InputPath)) {
     exit
 }
 
-$data = Get-Content $InputPath | ConvertFrom-Json
+# Load and validate JSON
+try {
+    $data = Get-Content $InputPath | ConvertFrom-Json
+    if (-not $data) {
+        Write-Error "Data file is empty: $InputPath"
+        exit
+    }
+} catch {
+    Write-Error "Invalid JSON in $InputPath : $_"
+    exit
+}
 
 $findings = @()
 

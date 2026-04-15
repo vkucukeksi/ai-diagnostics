@@ -65,19 +65,51 @@ $body = "{
   ""temperature"": 0.3
 }"
 
-# Call API
-$response = Invoke-RestMethod `
-    -Uri "https://api.openai.com/v1/chat/completions" `
-    -Method Post `
-    -Headers @{
-        Authorization = "Bearer $apiKey"
-        "Content-Type" = "application/json"
-    } `
-    -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
+# Call API with retry logic
+$maxRetries = 3
+$retryDelay = 2
+$response = $null
+
+for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+    try {
+        Write-Log "API call attempt $attempt/$maxRetries..."
+
+        $response = Invoke-RestMethod `
+            -Uri "https://api.openai.com/v1/chat/completions" `
+            -Method Post `
+            -Headers @{
+                Authorization = "Bearer $apiKey"
+                "Content-Type" = "application/json"
+            } `
+            -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) `
+            -TimeoutSec 30
+
+        # Success - break out of retry loop
+        break
+    } catch {
+        $errorMsg = $_.Exception.Message
+
+        # Check for specific errors
+        if ($errorMsg -like "*insufficient_quota*") {
+            Write-Error "API Error: Insufficient quota. Check your billing at https://platform.openai.com/account/billing"
+            exit 1
+        } elseif ($errorMsg -like "*invalid_request_error*") {
+            Write-Error "API Error: Invalid request format. This may be a configuration issue."
+            exit 1
+        } elseif ($attempt -eq $maxRetries) {
+            Write-Error "API Error after $maxRetries attempts: $errorMsg"
+            exit 1
+        } else {
+            Write-Log "Attempt failed, retrying in $retryDelay seconds..."
+            Start-Sleep -Seconds $retryDelay
+            $retryDelay = $retryDelay * 2  # Exponential backoff
+        }
+    }
+}
 
 # Validate response
 if (-not $response -or -not $response.choices) {
-    Write-Error "AI analysis failed (likely due to missing API credits)."
+    Write-Error "AI analysis failed: no valid response received."
     exit
 }
 
